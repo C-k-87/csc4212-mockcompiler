@@ -1,6 +1,8 @@
-def run_server(throttle=0, rpm=1700, load=0):
+import tkinter as tk
+import socket
+
+def run_server(output_label:tk.Label, throttle=0, rpm=1700, load=0):
     input_str=f"throttle={throttle}; rpm={rpm}; load={load}; end;"
-    import socket
 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(("127.0.0.1", 8080))
@@ -8,21 +10,20 @@ def run_server(throttle=0, rpm=1700, load=0):
     client.send(input_str.encode())
     response = client.recv(2048)
     print("Message from server:", response.decode())
+    output_label.config(text=f"ECU Ouptut:{response.decode()}")
 
     client.close()
 
 def run_gui():
-    import tkinter as tk
-
     def update_output():
         throttle = throttle_slider.get()
         rpm = rpm_slider.get()
         load = load_slider.get()
-        output_label.config(
+        input_label.config(
             text=f"Throttle: {throttle}% | RPM: {rpm} | Load: {load}%"
         )
 
-        run_server(throttle, rpm, load);
+        run_server(output_label, throttle, rpm, load);
 
         root.after(1000, update_output)
 
@@ -55,8 +56,12 @@ def run_gui():
     load_slider.pack()
     tk.Label(load_frame, text="Engine Load (%)").pack()
 
+    # Label for input sliders
+    input_label = tk.Label(root, text="Adjust sliders")
+    input_label.pack(padx=10, pady=10)
+
     # Label for output
-    output_label = tk.Label(root, text="Adjust sliders and press Update")
+    output_label = tk.Label(root, text="Waiting for output")
     output_label.pack(padx=10, pady=10)
 
     update_output()
